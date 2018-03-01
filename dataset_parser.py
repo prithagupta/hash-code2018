@@ -21,7 +21,7 @@ class DataserParser(metaclass=ABCMeta):
         self.ride_information = np.append(self.ride_information, diff, axis=1)
 
         df = pd.DataFrame(self.ride_information, columns=list('abxysfd'))
-        df = df.sort_values(['s', 'd'], ascending=[True, True])
+        df = df.sort_values(['d', 's'], ascending=[True, True])
         self.ride_information = df.as_matrix()
         self.ride_index = df.index.get_values()
 
@@ -34,12 +34,15 @@ class DataserParser(metaclass=ABCMeta):
 
     def start(self):
         rindex = 0
-        print("rides {}".format(self.rides))
+        #print("rides {}".format(self.rides))
+        #print(self.ride_information.shape)
         # steps_remaining = self.steps
-        while (np.sum(self.curr_pos[:, STEPS]) != 0) or rindex != self.rides:
+        while rindex < self.rides:
             ride_assigned = False
+            #print("in {}".format(rindex))
             for v in range(self.n_vehicles):
                 c = self.curr_pos[v, 0:2]
+                #print("out {}".format(rindex))
                 s = self.ride_information[rindex, 0:2]
                 f = self.ride_information[rindex, 2:4]
                 distance = np.sum(np.abs(c - s) + np.abs(s - f))
@@ -55,16 +58,23 @@ class DataserParser(metaclass=ABCMeta):
                     self.curr_pos[v, 0:2] = self.ride_information[rindex, 2:4]
                     self.curr_pos[v, CUR_STEP] += distance
                     self.curr_pos[v, STEPS] -= distance
-                    rindex +=1
-                    ride_assigned=True
+                    ride_assigned = True
+                    rindex += 1
+                    #print("assign {}".format(rindex))
+                if rindex >= self.rides:
+                    #print("breaking")
+                    break
 
             if not ride_assigned:
                 rindex+=1
+                #print("not assign {}".format(rindex))
 
-            if rindex == self.rides:
+            if rindex >= self.rides:
+                #print("breaking out")
                 break
-        print(self.solution)
-        print(self.curr_pos)
+
+        #print(self.solution)
+        #print(self.curr_pos)
     def save_solution(self):
         file = open(self.result, 'w')
         for k,v in self.solution.items():
