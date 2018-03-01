@@ -17,11 +17,24 @@ class DataserParser(metaclass=ABCMeta):
         df = df.sort_values(['s', 'd'], ascending=[True, True])
         self.ride_information = df.as_matrix()
         self.ride_index = df.index.get_values()
-        self.curr_pos = np.zeros((self.n_vehicles, 2), dtype=int)
+
+        self.solution = dict()
+        for v in range(self.n_vehicles):
+            self.solution[v] = [0]
+
+        self.curr_pos = np.zeros((self.n_vehicles, 3), dtype=int)
+        self.curr_pos[:,2] = self.curr_pos[:,2] + self.steps
 
     def start(self):
-        for i in range(self.steps):
-            pass
+        while(np.sum(self.curr_pos[:,3]) == 0 ):
+
+            i =  0
+            for v in range(self.n_vehicles):
+                self.solution[v][0]+=1
+                self.n_vehicles[v].append(self.ride_index[i])
+                self.ride_information
+
+
 
 if __name__ == '__main__':
     dr = DataserParser()
