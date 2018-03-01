@@ -74,6 +74,41 @@ class DataserParser(metaclass=ABCMeta):
 
         print("Solution \n {}".format(self.solution))
         #print(self.curr_pos)
+
+    def start2(self):
+        for rindex in range(self.rides):
+            #print("in {}".format(rindex))
+            nearest = np.inf
+            vindex = np.inf
+            for v in range(self.n_vehicles):
+                distance, near = self.get_distances(rindex, v)
+                if near < nearest and distance < self.curr_pos[v, STEPS]:
+                    vindex = v
+            
+            if vindex!=np.inf:
+                distance, near = self.get_distances(rindex, vindex)
+                self.solution[v][0] += 1
+                self.solution[v].append(self.ride_index[rindex])
+                self.curr_pos[v, 0:2] = self.ride_information[rindex, 2:4]
+                self.curr_pos[v, CUR_STEP] += distance
+                self.curr_pos[v, STEPS] -= distance
+                    #print("assign {}".format(rindex))
+
+
+        print("Solution \n {}".format(self.solution))
+        #print(self.curr_pos)
+
+    def get_distances(self, rindex, v):
+        c = self.curr_pos[v, 0:2]
+        s = self.ride_information[rindex, 0:2]
+        f = self.ride_information[rindex, 2:4]
+        man = np.abs(c - s) + np.abs(s - f)
+        distance = np.sum(man)
+        if self.curr_pos[v, CUR_STEP] < self.ride_information[rindex, 4]:
+            distance += self.ride_information[rindex, 4] - self.curr_pos[v, CUR_STEP]
+        near = np.abs(c - s)
+        return distance, near
+
     def save_solution(self):
         file = open(self.result, 'w')
         for k,v in self.solution.items():
@@ -84,13 +119,10 @@ class DataserParser(metaclass=ABCMeta):
 
 
 if __name__ == '__main__':
-    for file in glob.glob(os.path.join(os.getcwd(),"data","*.in")):
+    for file in glob.glob(os.path.join(os.getcwd(), "data2","*.in")):
         output_file = file.replace(".in", ".out")
         print("output File {}".format(output_file))
         dr = DataserParser(input_file=file, output_file=output_file)
-        #print(dr.ride_information)
-        #print(dr.ride_index)
-
-        dr.start()
+        dr.start2()
         dr.save_solution()
         print("########################################")
