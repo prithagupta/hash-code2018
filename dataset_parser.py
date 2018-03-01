@@ -42,16 +42,15 @@ class DataserParser(metaclass=ABCMeta):
             #print("in {}".format(rindex))
             for v in range(self.n_vehicles):
                 c = self.curr_pos[v, 0:2]
-                #print("out {}".format(rindex))
                 s = self.ride_information[rindex, 0:2]
                 f = self.ride_information[rindex, 2:4]
-                distance = np.sum(np.abs(c - s) + np.abs(s - f))
+                man = np.abs(c - s) + np.abs(s - f)
+                distance = np.sum(man)
                 if self.curr_pos[v, CUR_STEP] < self.ride_information[rindex, 4]:
-                    distance = self.ride_information[rindex, 4] - self.curr_pos[v, CUR_STEP]
+                    distance += self.ride_information[rindex, 4] - self.curr_pos[v, CUR_STEP]
                 # print(c)
                 # print(s)
                 # print(f)
-                # print(distance)
                 if distance < self.curr_pos[v, STEPS]:
                     self.solution[v][0] += 1
                     self.solution[v].append(self.ride_index[rindex])
@@ -73,7 +72,7 @@ class DataserParser(metaclass=ABCMeta):
                 #print("breaking out")
                 break
 
-        #print(self.solution)
+        print("Solution \n {}".format(self.solution))
         #print(self.curr_pos)
     def save_solution(self):
         file = open(self.result, 'w')
@@ -87,7 +86,11 @@ class DataserParser(metaclass=ABCMeta):
 if __name__ == '__main__':
     for file in glob.glob(os.path.join(os.getcwd(),"data","*.in")):
         output_file = file.replace(".in", ".out")
-        print(output_file)
+        print("output File {}".format(output_file))
         dr = DataserParser(input_file=file, output_file=output_file)
+        #print(dr.ride_information)
+        #print(dr.ride_index)
+
         dr.start()
         dr.save_solution()
+        print("########################################")
