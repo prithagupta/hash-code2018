@@ -32,6 +32,17 @@ class DataserParser(metaclass=ABCMeta):
         self.curr_pos = np.zeros((self.n_vehicles, 4), dtype=int)
         self.curr_pos[:, STEPS] = self.curr_pos[:, STEPS] + self.steps
 
+    def get_distances(self, rindex, v):
+        c = self.curr_pos[v, 0:2]
+        s = self.ride_information[rindex, 0:2]
+        f = self.ride_information[rindex, 2:4]
+        man = np.abs(c - s) + np.abs(s - f)
+        distance = np.sum(man)
+        if self.curr_pos[v, CUR_STEP] < self.ride_information[rindex, 4]:
+            distance += self.ride_information[rindex, 4] - self.curr_pos[v, CUR_STEP]
+        near = np.sum(np.abs(c - s))
+        return distance, near
+
     def start(self):
         rindex = 0
         #print("rides {}".format(self.rides))
@@ -80,34 +91,28 @@ class DataserParser(metaclass=ABCMeta):
             #print("in {}".format(rindex))
             nearest = np.inf
             vindex = np.inf
+            leastTravel = np.inf
             for v in range(self.n_vehicles):
                 distance, near = self.get_distances(rindex, v)
                 if near < nearest and distance < self.curr_pos[v, STEPS]:
                     vindex = v
-            
+                    nearest = near
+                    
+
             if vindex!=np.inf:
                 distance, near = self.get_distances(rindex, vindex)
-                self.solution[v][0] += 1
-                self.solution[v].append(self.ride_index[rindex])
-                self.curr_pos[v, 0:2] = self.ride_information[rindex, 2:4]
-                self.curr_pos[v, CUR_STEP] += distance
-                self.curr_pos[v, STEPS] -= distance
+                self.solution[vindex][0] += 1
+                self.solution[vindex].append(self.ride_index[rindex])
+                self.curr_pos[vindex, 0:2] = self.ride_information[rindex, 2:4]
+                self.curr_pos[vindex, CUR_STEP] += distance
+                self.curr_pos[vindex, STEPS] -= distance
                     #print("assign {}".format(rindex))
 
 
         print("Solution \n {}".format(self.solution))
         #print(self.curr_pos)
 
-    def get_distances(self, rindex, v):
-        c = self.curr_pos[v, 0:2]
-        s = self.ride_information[rindex, 0:2]
-        f = self.ride_information[rindex, 2:4]
-        man = np.abs(c - s) + np.abs(s - f)
-        distance = np.sum(man)
-        if self.curr_pos[v, CUR_STEP] < self.ride_information[rindex, 4]:
-            distance += self.ride_information[rindex, 4] - self.curr_pos[v, CUR_STEP]
-        near = np.abs(c - s)
-        return distance, near
+
 
     def save_solution(self):
         file = open(self.result, 'w')
